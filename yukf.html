@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merry Christmas! 🎄✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000000; 
+            font-family: 'Mountains of Christmas', cursive;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #text-overlay {
+            position: absolute;
+            top: 25%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            color: #fff;
+            pointer-events: none;
+            width: 100%;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            font-size: 5rem;
+            margin: 0;
+            color: #fff;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        p {
+            font-size: 1.8rem;
+            margin-top: 10px;
+            color: #d1e8ff;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Read Button Styling */
+        #read-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            background: linear-gradient(135deg, #d42e2e, #ff6b6b);
+            border: 2px solid #fff;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(212, 46, 46, 0.6);
+            /* Hidden initially, shown after start */
+            opacity: 0; 
+            pointer-events: none;
+        }
+
+        #read-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #read-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 107, 107, 0.8);
+            background: linear-gradient(135deg, #ff6b6b, #d42e2e);
+        }
+
+        /* Message Modal */
+        #message-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #message-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .card {
+            background: linear-gradient(to bottom right, #fff5e6, #ffe0b2);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 80%;
+            text-align: center;
+            color: #5d4037;
+            position: relative;
+            transform: scale(0.8);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            border: 4px double #d42e2e;
+        }
+
+        #message-modal.visible .card {
+            transform: scale(1);
+        }
+
+        .card h2 {
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: 2.5rem;
+            color: #d42e2e;
+            margin-top: 0;
+        }
+
+        .card p {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+            line-height: 1.6;
+            color: #333;
+            opacity: 1;
+            transform: none;
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background: #d42e2e;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Mountains of Christmas', cursive;
+        }
+
+        .close-btn:hover {
+            background: #b71c1c;
+        }
+
+        /* --- NEW: START SCREEN OVERLAY --- */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        #start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .start-btn {
+            background: transparent;
+            border: 3px solid #d42e2e;
+            color: #d42e2e;
+            padding: 15px 40px;
+            font-size: 2rem;
+            font-family: 'Mountains of Christmas', cursive;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(212, 46, 46, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .start-btn:hover {
+            background: #d42e2e;
+            color: #fff;
+            box-shadow: 0 0 40px rgba(212, 46, 46, 0.8);
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(212, 46, 46, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(212, 46, 46, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 46, 46, 0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen">
+        <button class="start-btn" id="start-btn">Open Card 🎄</button>
+    </div>
+
+    <div id="text-overlay">
+        <h1 id="main-title">Merry Christmas</h1>
+        <p id="sub-title">Silent Night, Holy Night</p>
+    </div>
+
+    <!-- Read Button -->
+    <button id="read-btn">📖 Read</button>
+
+    <!-- Message Modal -->
+    <div id="message-modal">
+        <div class="card">
+            <h2>Merry Christmas🎄
+</h2>
+            <p>
+                May this Christmas bring you peace, happiness, and moments that make you smile without trying. I hope the coming year treats you kindly, fills your days with purpose, and gives you many reasons to be grateful. Stay safe, stay hopeful, and keep moving forward.
+            </p>
+            <p style="font-size: 1.4rem; color: #d42e2e;"></p>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Audio Source -->
+    <audio id="bg-music" loop>
+        <source src="background.mp3" type="audio/mp3">
+    </audio>
+
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        // --- 1. SETUP SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.003);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 12, 50);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true; 
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x405070, 0.4);
+        scene.add(ambientLight);
+
+        const moonLight = new THREE.DirectionalLight(0xddeeff, 0.5);
+        moonLight.position.set(-20, 50, -20);
+        moonLight.castShadow = true;
+        moonLight.shadow.mapSize.width = 2048;
+        moonLight.shadow.mapSize.height = 2048;
+        scene.add(moonLight);
+
+        const treeLight = new THREE.PointLight(0xffaa00, 0.8, 20);
+        treeLight.position.set(0, 8, 5);
+        scene.add(treeLight);
+
+        // --- 3. ENVIRONMENT ---
+        const groundGeo = new THREE.CircleGeometry(100, 64);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0.1 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -5;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // --- 4. THE TREE & GIFTS ---
+        const treeGroup = new THREE.Group();
+        const greenMaterial = new THREE.MeshStandardMaterial({ color: 0x1a472a, roughness: 0.8, flatShading: true });
+        const levels = 5;
+        
+        for (let i = 0; i < levels; i++) {
+            const radius = 9 - i * 1.8;
+            const yPos = i * 3.5;
+            const geometry = new THREE.ConeGeometry(radius, 5, 10);
+            const cone = new THREE.Mesh(geometry, greenMaterial);
+            cone.position.y = yPos;
+            cone.castShadow = true;
+            cone.receiveShadow = true;
+            treeGroup.add(cone);
+
+            if(i < levels - 1) {
+                for(let j=0; j<8; j++) {
+                    const angle = (j / 8) * Math.PI * 2 + (i * 0.5);
+                    const ornaRadius = radius - 0.4;
+                    const ornaGeo = new THREE.SphereGeometry(0.5, 8, 8);
+                    const ornaMat = new THREE.MeshPhongMaterial({ color: Math.random() > 0.5 ? 0xff0000 : 0xffd700, shininess: 100 });
+                    const ornament = new THREE.Mesh(ornaGeo, ornaMat);
+                    ornament.position.set(Math.cos(angle)*ornaRadius, yPos - 2, Math.sin(angle)*ornaRadius);
+                    treeGroup.add(ornament);
+                }
+            }
+        }
+
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2, 6, 8), new THREE.MeshStandardMaterial({ color: 0x3d2817 }));
+        trunk.position.y = -3;
+        trunk.castShadow = true;
+        treeGroup.add(trunk);
+
+        const star = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, 0), new THREE.MeshBasicMaterial({ color: 0xffd700 }));
+        star.position.y = (levels * 3.5) + 0.5;
+        treeGroup.add(star);
+        scene.add(treeGroup);
+
+        const giftColors = [0xd63031, 0x0984e3, 0x6c5ce7];
+        for(let k=0; k<10; k++) {
+            const angle = Math.random() * Math.PI * 2;
+            const r = 4 + Math.random() * 6;
+            const size = 1.2 + Math.random();
+            const gift = new THREE.Group();
+            
+            const box = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), new THREE.MeshStandardMaterial({ color: giftColors[k%3] }));
+            box.castShadow = true; box.receiveShadow = true;
+            gift.add(box);
+            
+            const ribMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const rib1 = new THREE.Mesh(new THREE.BoxGeometry(size+0.1, size*0.2, size+0.1), ribMat);
+            const rib2 = new THREE.Mesh(new THREE.BoxGeometry(size*0.2, size+0.1, size+0.1), ribMat);
+            gift.add(rib1); gift.add(rib2);
+
+            gift.position.set(Math.cos(angle)*r, -5 + size/2, Math.sin(angle)*r);
+            gift.rotation.y = Math.random();
+            scene.add(gift);
+        }
+
+        // --- 6. SNOW ---
+        const snowGeo = new THREE.BufferGeometry();
+        const snowCount = 2000;
+        const posArray = new Float32Array(snowCount * 3);
+        const velArray = new Float32Array(snowCount);
+        for(let i=0; i<snowCount*3; i+=3) {
+            posArray[i] = (Math.random()-0.5)*150;
+            posArray[i+1] = Math.random()*100;
+            posArray[i+2] = (Math.random()-0.5)*150;
+            velArray[i/3] = 0.1 + Math.random()*0.2;
+        }
+        snowGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        
+        const canvas = document.createElement('canvas');
+        canvas.width=32; canvas.height=32;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(16,16,16,0,Math.PI*2); ctx.fill();
+        const snowTex = new THREE.CanvasTexture(canvas);
+        
+        const snowMat = new THREE.PointsMaterial({ size: 0.6, map: snowTex, transparent: true, opacity: 0.8, depthWrite: false });
+        const snowSystem = new THREE.Points(snowGeo, snowMat);
+        scene.add(snowSystem);
+
+        // --- 7. ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            treeGroup.rotation.y = Math.sin(time * 0.5) * 0.05;
+            star.rotation.y -= 0.02;
+
+            const positions = snowSystem.geometry.attributes.position.array;
+            for(let i=1; i<snowCount*3; i+=3) {
+                positions[i] -= velArray[(i-1)/3];
+                if(positions[i] < -10) positions[i] = 80;
+            }
+            snowSystem.geometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 8. MUSIC & START LOGIC ---
+        const music = document.getElementById('bg-music');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        const readBtn = document.getElementById('read-btn');
+        const modal = document.getElementById('message-modal');
+
+        music.volume = 0.12;
+
+        function startExperience() {
+            // 1. Hide Start Screen
+            startScreen.classList.add('hidden');
+            setTimeout(() => { startScreen.style.display = 'none'; }, 1000);
+
+            // 2. Play Music
+            music.play().catch(e => console.log("Music blocked until click"));
+
+            // 3. Show UI Elements
+            readBtn.classList.add('active');
+
+            // 4. Start Text Animations
+            gsap.to("#main-title", { duration: 2, opacity: 1, y: 0, delay: 0.5, ease: "power3.out" });
+            gsap.to("#sub-title", { duration: 2, opacity: 1, y: 0, delay: 1.5, ease: "power2.out" });
+            gsap.from(camera.position, { duration: 3, z: 80, y: 40, ease: "power3.inOut" });
+        }
+
+        // SMART AUTOPLAY:
+        // Attempt to play immediately on load.
+        // If it works (browser allows it), we skip the start screen entirely.
+        const autoPlayPromise = music.play();
+
+        if (autoPlayPromise !== undefined) {
+            autoPlayPromise.then(_ => {
+                // Autoplay started!
+                // Hide start screen immediately, no need for user to click
+                console.log("Autoplay successful");
+                startExperience();
+            }).catch(error => {
+                // Autoplay was prevented.
+                // Show start screen so user CAN click.
+                console.log("Autoplay blocked. Waiting for user interaction.");
+                startScreen.style.opacity = "1"; // Ensure it's visible
+            });
+        }
+
+        // Fallback: If autoplay failed, this button is the "key" to start everything.
+        startBtn.addEventListener('click', () => {
+            music.play();
+            startExperience();
+        });
+
+        // --- 9. MODAL LOGIC ---
+        readBtn.addEventListener('click', (e) => {
+            modal.classList.add('visible');
+        });
+
+        window.closeModal = function() {
+            modal.classList.remove('visible');
+        }
+
+        modal.addEventListener('click', (e) => {
+             if (e.target === modal) closeModal();
+        });
+
+    </script>
+</body>
+</html>
